@@ -1,0 +1,3 @@
+LIBRARY cStringGPy.pyd
+EXPORTS
+initcStringGPy
