@@ -1,12 +1,8 @@
 # StringGPy
-Inference under string Gaussian processes and other related kernel methods.
+Bayesian nonparametric inference under string Gaussian processes priors (see https://arxiv.org/abs/1507.06977).
 
-The package has a dependency on LAPACKE: http://www.netlib.org/lapack/lapacke.html. On Ubuntu, LAPACK(E) can be installed using the commands:
+The package should be installed like so
 
-sudo apt-get install libblas-dev checkinstall
+> > python setup.py install
 
-sudo apt-get install libblas-doc checkinstall
-
-sudo apt-get install liblapacke-dev checkinstall
-
-sudo apt-get install liblapack-doc checkinstall
+Please direct any questions to ylks@robots.ox.ac.uk.

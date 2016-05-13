@@ -1,3 +1,0 @@
-LIBRARY c_string_kernels.pyd
-EXPORTS
-initc_string_kernels

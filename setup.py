@@ -1,20 +1,75 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Sep 23 17:50:17 2015
+
+@author: ylkomsamo
+"""
+
 import sys
 sys.path.append('.')
 
-from distutils.core import setup, Extension
+try:
+    from setuptools import setup
+    from setuptools import Extension
+except ImportError:
+    from distutils.core import setup
+    from distutils.extension import Extension
+
+from Cython.Distutils import build_ext
 import os
-import site
+import numpy as np
 
-inc_dirs =  [os.path.join(sp, 'numpy', 'core', 'include') for sp in site.getsitepackages()]
-inc_dirs += ['/usr/include']
-c_source = [os.path.join(rt, fl) for (rt,dr,fls) in\
-	os.walk(os.path.join('.', 'c_extensions')) for fl in fls if fl.endswith('.c')]
+inc_dirs = ['.', '/usr/include', os.path.join('.', 'src'), np.get_include()]
 
-setup(name='cStringGPy',\
-		version='1.0',\
-		description='This package implements string Gaussian processes methods.',\
-		author='Yves-Laurent KOM SAMO',\
-		author_email='ylks@robots.ox.ac.uk',\
-		ext_modules=[Extension('cStringGPy', c_source, library_dirs=['/usr/lib'],\
-			extra_compile_args=['-llapacke', '-lblas'], extra_link_args=['-llapacke', '-lblas']),],\
-		include_dirs=inc_dirs)
+def scan_pyx(dir, files = [], cfiles = []):
+    for file in os.listdir(dir):
+        path = os.path.join(dir, file)
+        if os.path.isfile(path) and path.endswith(".pyx"):
+            files.append(path.replace(os.path.sep, ".")[:-4])
+        elif os.path.isdir(path):
+            scan_pyx(path, files)
+    return files
+
+def scan_c(dir, files = []):
+    for file in os.listdir(dir):
+        path = os.path.join(dir, file)
+        if os.path.isfile(path) and path.endswith(".c"):
+            files.append(path)
+        elif os.path.isdir(path):
+            scan_c(path, files)
+    return files
+
+# get the list of extensions
+c_sources = scan_c("src")
+
+def make_extension(ext_name):
+    ext_path = ext_name.replace(".", os.path.sep) + ".pyx"
+    return Extension(ext_name,
+                     [ext_path] + c_sources,
+                     include_dirs=inc_dirs,
+                     extra_compile_args=['-fopenmp', '-O0'],
+                     extra_link_args=['-fopenmp'])
+
+
+# get the list of extensions
+ext_names = scan_pyx("StringGPy")
+
+# and build up the set of Extension objects
+extensions = [make_extension(name) for name in ext_names]
+
+setup(name='StringGPy',
+      version='0.2',
+      cmdclass={'build_ext': build_ext},
+      ext_modules=extensions,
+      packages=['StringGPy',
+                'StringGPy.samplers',
+                'StringGPy.examples',
+                'StringGPy.utilities',
+                'StringGPy.spt_ml',
+                'StringGPy.data'],
+      install_requires=['numpy',
+                        'scipy',
+                        'statsmodels',
+                        'pandas',
+                        'matplotlib',
+                        'GPy'])
